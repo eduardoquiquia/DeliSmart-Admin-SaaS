@@ -1,6 +1,6 @@
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { api } from './api'
-import type { License, Metrics, Page, Payment, Plan, Profile, Tenant } from './types'
+import type { License, Metrics, MyPlan, Page, Payment, Plan, Profile, Tenant } from './types'
 
 export type ListParams = { page: number; search: string; estado?: string }
 
@@ -35,6 +35,13 @@ export function useMetrics() {
   return useQuery({
     queryKey: ['metrics'],
     queryFn: async () => (await api.get<Metrics>('/metrics/')).data,
+  })
+}
+
+export function useMyPlan() {
+  return useQuery({
+    queryKey: ['my-plan'],
+    queryFn: async () => (await api.get<MyPlan>('/my-plan/')).data,
   })
 }
 
@@ -79,10 +86,11 @@ function useInvalidate() {
 }
 
 /** Trae los pagos cuyo webhook no llegó, para que aparezcan sin recargar el panel. */
-export function useStripeSync() {
+export function useStripeSync(enabled: boolean) {
   const invalidate = useInvalidate()
   return useQuery({
     queryKey: ['stripe-sync'],
+    enabled,
     queryFn: async () => {
       const { data } = await api.post<{ activados: number }>('/stripe/sync/')
       if (data.activados > 0) await invalidate()

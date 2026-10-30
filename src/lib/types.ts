@@ -73,9 +73,21 @@ export type Plan = {
   precio_anual: string
 }
 
+export type Role = 'superusuario' | 'cliente'
+
 export type Profile = {
   id: number
   username: string
   email: string
   nombre: string
+  rol: Role
+}
+
+export type MyPlan = {
+  restaurante: Pick<
+    Tenant,
+    'nombre' | 'subdominio' | 'ruc' | 'telefono' | 'email_admin' | 'estado' | 'plan_id' | 'billing_cycle'
+  >
+  licencia: License | null
+  pagos: Payment[]
 }
