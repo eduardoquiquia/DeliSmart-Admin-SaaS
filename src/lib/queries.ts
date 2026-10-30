@@ -74,8 +74,25 @@ function useInvalidate() {
   const queryClient = useQueryClient()
   return () =>
     Promise.all(
-      ['tenants', 'licenses', 'metrics'].map((key) => queryClient.invalidateQueries({ queryKey: [key] })),
+      ['tenants', 'licenses', 'payments', 'metrics'].map((key) => queryClient.invalidateQueries({ queryKey: [key] })),
     )
+}
+
+/** Trae los pagos cuyo webhook no llegó, para que aparezcan sin recargar el panel. */
+export function useStripeSync() {
+  const invalidate = useInvalidate()
+  return useQuery({
+    queryKey: ['stripe-sync'],
+    queryFn: async () => {
+      const { data } = await api.post<{ activados: number }>('/stripe/sync/')
+      if (data.activados > 0) await invalidate()
+      return data
+    },
+    refetchInterval: 60_000,
+    refetchOnWindowFocus: true,
+    staleTime: 0,
+    retry: false,
+  })
 }
 
 export function useUpdateTenant() {
