@@ -6,9 +6,9 @@ import { PageHeader } from '../components/ui/PageHeader'
 import { QueryBoundary } from '../components/ui/QueryBoundary'
 import { Badge, StatusBadge } from '../components/ui/StatusBadge'
 import { cardClass } from '../components/ui/styles'
-import { formatDate, formatMoney } from '../lib/format'
+import { formatDate, formatDateTime, formatMoney, tenantUrl } from '../lib/format'
 import { useMetrics } from '../lib/queries'
-import type { License, Metrics, Tenant } from '../lib/types'
+import type { License, Metrics, Payment, Tenant } from '../lib/types'
 
 const CRITICAL_DAYS = 3
 
@@ -51,13 +51,51 @@ const RECENT_COLUMNS: Column<Tenant>[] = [
     cell: (tenant) => (
       <>
         <span className="block font-semibold text-slate-900">{tenant.nombre}</span>
-        <span className="text-xs text-slate-500">{tenant.subdominio}</span>
+        <a
+          href={tenantUrl(tenant.subdominio)}
+          target="_blank"
+          rel="noreferrer"
+          className="text-xs font-medium text-brand hover:text-brand-dark"
+        >
+          {tenant.subdominio}
+        </a>
       </>
     ),
   },
   { header: 'Plan', cell: (tenant) => <span className="capitalize">{tenant.licencia?.plan ?? tenant.plan_id}</span> },
+  {
+    header: 'Licencia',
+    cell: (tenant) =>
+      tenant.licencia ? (
+        <>
+          <StatusBadge status={tenant.licencia.estado} />
+          <span className="mt-1 block text-xs text-slate-500">Vence {formatDate(tenant.licencia.fecha_vencimiento)}</span>
+        </>
+      ) : (
+        'Sin licencia'
+      ),
+  },
   { header: 'Estado', cell: (tenant) => <StatusBadge status={tenant.estado} /> },
-  { header: 'Registro', cell: (tenant) => formatDate(tenant.fecha_creacion) },
+]
+
+const PAYMENT_COLUMNS: Column<Payment>[] = [
+  {
+    header: 'Restaurante',
+    cell: (payment) => (
+      <>
+        <span className="block font-semibold text-slate-900">{payment.restaurante_nombre}</span>
+        <span className="text-xs text-slate-500">{payment.restaurante_subdominio}</span>
+      </>
+    ),
+  },
+  { header: 'Fecha', cell: (payment) => formatDateTime(payment.fecha_pago) },
+  {
+    header: 'Monto',
+    align: 'right',
+    cell: (payment) => (
+      <span className="font-semibold text-slate-900">{formatMoney(payment.monto, payment.moneda)}</span>
+    ),
+  },
 ]
 
 function ExpiringList({ licenses }: { licenses: License[] }) {
@@ -156,6 +194,21 @@ function DashboardContent({ metrics }: { metrics: Metrics }) {
           </div>
           <ExpiringList licenses={expiring} />
         </div>
+      </section>
+
+      <section className={`mt-6 ${cardClass}`}>
+        <div className="flex items-center justify-between gap-4 px-6 py-4">
+          <h2 className="text-base font-bold text-slate-900">Últimos pagos</h2>
+          <Link to="/pagos" className="text-sm font-semibold text-brand hover:text-brand-dark">
+            Ver todos
+          </Link>
+        </div>
+        <DataTable
+          columns={PAYMENT_COLUMNS}
+          rows={metrics.ultimos_pagos}
+          rowKey={(payment) => payment.id}
+          emptyMessage="Aún no hay pagos registrados."
+        />
       </section>
     </>
   )

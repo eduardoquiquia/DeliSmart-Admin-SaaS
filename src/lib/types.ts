@@ -63,6 +63,7 @@ export type Metrics = {
   pedidos_globales: number | null
   licencias_por_vencer: License[]
   ultimos_restaurantes: Tenant[]
+  ultimos_pagos: Payment[]
 }
 
 export type Plan = {
