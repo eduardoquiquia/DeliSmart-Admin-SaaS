@@ -1,14 +1,19 @@
 import { NavLink } from 'react-router-dom'
+import { useAuth } from '../../auth/AuthContext'
+import type { Role } from '../../lib/types'
 import { CardIcon, ChartIcon, ChevronLeftIcon, ChevronRightIcon, CloseIcon, KeyIcon, SettingsIcon, StoreIcon } from '../ui/Icons'
 import { Logo, LogoMark } from '../ui/Logo'
 
-const NAV_ITEMS = [
-  { to: '/dashboard', label: 'Dashboard', Icon: ChartIcon },
-  { to: '/tenants', label: 'Restaurantes', Icon: StoreIcon },
-  { to: '/licencias', label: 'Licencias y Suscripciones', Icon: KeyIcon },
-  { to: '/pagos', label: 'Pagos / Stripe', Icon: CardIcon },
-  { to: '/configuracion', label: 'Configuración', Icon: SettingsIcon },
-]
+const NAV_ITEMS: Record<Role, { to: string; label: string; Icon: typeof ChartIcon }[]> = {
+  superusuario: [
+    { to: '/dashboard', label: 'Dashboard', Icon: ChartIcon },
+    { to: '/tenants', label: 'Restaurantes', Icon: StoreIcon },
+    { to: '/licencias', label: 'Licencias y Suscripciones', Icon: KeyIcon },
+    { to: '/pagos', label: 'Pagos / Stripe', Icon: CardIcon },
+    { to: '/configuracion', label: 'Configuración', Icon: SettingsIcon },
+  ],
+  cliente: [{ to: '/mi-plan', label: 'Mi Plan', Icon: CardIcon }],
+}
 
 type SidebarProps = {
   collapsed: boolean
@@ -18,6 +23,9 @@ type SidebarProps = {
 }
 
 export function Sidebar({ collapsed, mobileOpen, onToggle, onCloseMobile }: SidebarProps) {
+  const { profile } = useAuth()
+  const items = profile ? NAV_ITEMS[profile.rol] : []
+
   return (
     <>
       {mobileOpen && <div className="fixed inset-0 z-30 bg-slate-900/55 lg:hidden" onClick={onCloseMobile} />}
@@ -42,7 +50,7 @@ export function Sidebar({ collapsed, mobileOpen, onToggle, onCloseMobile }: Side
         </div>
 
         <nav aria-label="Principal" className="flex-1 space-y-1 p-3">
-          {NAV_ITEMS.map(({ to, label, Icon }) => (
+          {items.map(({ to, label, Icon }) => (
             <NavLink
               key={to}
               to={to}

@@ -2,6 +2,7 @@ import axios, { AxiosError, type InternalAxiosRequestConfig } from 'axios'
 
 export const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000'
 export const ROOT_DOMAIN = import.meta.env.VITE_ROOT_DOMAIN || 'delismart.publicvm.com'
+export const LANDING_URL = import.meta.env.VITE_LANDING_URL || 'http://localhost:3000'
 
 const BASE_URL = `${API_URL}/api/v1/admin`
 const TOKENS_KEY = 'delismart-admin-tokens'
@@ -24,6 +25,20 @@ export function setTokens(tokens: Tokens) {
 
 export function clearTokens() {
   localStorage.removeItem(TOKENS_KEY)
+}
+
+/** El login vive en el landing, que entrega la sesión en el fragmento de la URL. */
+export function consumeLandingSession() {
+  const params = new URLSearchParams(window.location.hash.slice(1))
+  const access = params.get('access')
+  const refresh = params.get('refresh')
+  if (!access || !refresh) return
+  setTokens({ access, refresh })
+  window.history.replaceState(null, '', window.location.pathname)
+}
+
+export function redirectToLogin() {
+  window.location.replace(`${LANDING_URL}/login`)
 }
 
 export const api = axios.create({ baseURL: BASE_URL })

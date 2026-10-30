@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Outlet } from 'react-router-dom'
+import { useAuth } from '../../auth/AuthContext'
 import { useStripeSync } from '../../lib/queries'
 import { Header } from './Header'
 import { Sidebar } from './Sidebar'
@@ -17,7 +18,8 @@ function readCollapsed() {
 export function AppLayout() {
   const [collapsed, setCollapsed] = useState(readCollapsed)
   const [mobileOpen, setMobileOpen] = useState(false)
-  useStripeSync()
+  const { profile } = useAuth()
+  useStripeSync(profile?.rol === 'superusuario')
 
   function toggleCollapsed() {
     const next = !collapsed

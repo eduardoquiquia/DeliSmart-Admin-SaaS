@@ -4,7 +4,6 @@ import type { Profile } from '../lib/types'
 export type AuthValue = {
   isAuthenticated: boolean
   profile: Profile | undefined
-  login: (username: string, password: string) => Promise<void>
   logout: () => void
 }
 

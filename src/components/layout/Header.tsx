@@ -17,7 +17,8 @@ export function Header({ onOpenMenu }: { onOpenMenu: () => void }) {
   const { profile, logout } = useAuth()
   const navigate = useNavigate()
   const [search, setSearch] = useState('')
-  const name = profile?.nombre ?? 'Administrador'
+  const name = profile?.nombre ?? ''
+  const isSuperuser = profile?.rol === 'superusuario'
 
   function handleSearch(event: FormEvent) {
     event.preventDefault()
@@ -36,28 +37,30 @@ export function Header({ onOpenMenu }: { onOpenMenu: () => void }) {
         <MenuIcon />
       </button>
 
-      <form role="search" onSubmit={handleSearch} className="relative hidden max-w-sm flex-1 sm:block">
-        <SearchIcon className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-slate-400" />
-        <input
-          type="search"
-          value={search}
-          onChange={(event) => setSearch(event.target.value)}
-          aria-label="Buscar restaurantes"
-          placeholder="Buscar restaurante o subdominio"
-          className="w-full rounded-xl border border-slate-200 bg-slate-50 py-2 pr-3 pl-9 text-sm text-slate-900 outline-none focus:border-brand focus:bg-white focus:ring-2 focus:ring-brand/20"
-        />
-      </form>
+      {isSuperuser && (
+        <form role="search" onSubmit={handleSearch} className="relative hidden max-w-sm flex-1 sm:block">
+          <SearchIcon className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-slate-400" />
+          <input
+            type="search"
+            value={search}
+            onChange={(event) => setSearch(event.target.value)}
+            aria-label="Buscar restaurantes"
+            placeholder="Buscar restaurante o subdominio"
+            className="w-full rounded-xl border border-slate-200 bg-slate-50 py-2 pr-3 pl-9 text-sm text-slate-900 outline-none focus:border-brand focus:bg-white focus:ring-2 focus:ring-brand/20"
+          />
+        </form>
+      )}
 
       <div className="ml-auto flex items-center gap-3">
-        <ServerBadge />
-        <span className="hidden h-8 w-px bg-slate-200 sm:block" />
+        {isSuperuser && <ServerBadge />}
+        {isSuperuser && <span className="hidden h-8 w-px bg-slate-200 sm:block" />}
         <span className="flex items-center gap-2.5">
           <span className="flex size-9 items-center justify-center rounded-full bg-red-100 text-xs font-bold text-brand">
             {initials(name)}
           </span>
           <span className="hidden leading-tight md:block">
             <span className="block text-sm font-semibold text-slate-900">{name}</span>
-            <span className="block text-xs text-slate-500">Superusuario</span>
+            <span className="block text-xs text-slate-500">{isSuperuser ? 'Superusuario' : 'Cliente'}</span>
           </span>
         </span>
         <button

@@ -5,6 +5,9 @@ import { BrowserRouter } from 'react-router-dom'
 import { AuthProvider } from './auth/AuthProvider'
 import './index.css'
 import App from './App'
+import { consumeLandingSession } from './lib/api'
+
+consumeLandingSession()
 
 const queryClient = new QueryClient({
   defaultOptions: { queries: { retry: 1, refetchOnWindowFocus: false, staleTime: 30_000 } },
