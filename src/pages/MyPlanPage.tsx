@@ -3,9 +3,11 @@ import { ExternalLinkIcon } from '../components/ui/Icons'
 import { PageHeader } from '../components/ui/PageHeader'
 import { QueryBoundary } from '../components/ui/QueryBoundary'
 import { StatusBadge } from '../components/ui/StatusBadge'
-import { cardClass, secondaryButtonClass } from '../components/ui/styles'
-import { formatDate, formatDateTime, formatMoney, tenantUrl } from '../lib/format'
-import { useMyPlan, usePlans } from '../lib/queries'
+import { cardClass, primaryButtonClass, secondaryButtonClass } from '../components/ui/styles'
+import { useState } from 'react'
+import { errorMessage } from '../lib/api'
+import { formatDate, formatDateTime, formatMoney } from '../lib/format'
+import { useMyPlan, usePlans, useRestaurantAccess } from '../lib/queries'
 import type { MyPlan, Payment } from '../lib/types'
 
 const PAYMENT_COLUMNS: Column<Payment>[] = [
@@ -32,6 +34,46 @@ function Field({ label, value }: { label: string; value: string }) {
     <div>
       <dt className="text-xs text-slate-500">{label}</dt>
       <dd className="mt-0.5 text-sm font-semibold break-all text-slate-900">{value}</dd>
+    </div>
+  )
+}
+
+function OpenRestaurantButton() {
+  const access = useRestaurantAccess()
+  const [error, setError] = useState<string | null>(null)
+
+  function open() {
+    // La pestaña se abre en el clic para que el navegador no la bloquee; el enlace llega después.
+    const tab = window.open('', '_blank')
+    setError(null)
+    access.mutate(undefined, {
+      onSuccess: (url) => {
+        if (!tab) {
+          window.location.assign(url)
+          return
+        }
+        tab.opener = null
+        tab.location.href = url
+      },
+      onError: (err) => {
+        tab?.close()
+        setError(errorMessage(err, 'No pudimos abrir el panel de tu pollería.'))
+      },
+    })
+  }
+
+  return (
+    <div className="mt-5">
+      <button type="button" onClick={open} disabled={access.isPending} className={`w-full ${primaryButtonClass}`}>
+        <ExternalLinkIcon className="size-4" />
+        {access.isPending ? 'Abriendo…' : 'Abrir panel de mi pollería'}
+      </button>
+      <p className="mt-2 text-xs text-slate-500">Entras directo como administrador, sin volver a iniciar sesión.</p>
+      {error && (
+        <p role="alert" className="mt-2 text-xs font-semibold text-red-600">
+          {error}
+        </p>
+      )}
     </div>
   )
 }
@@ -84,15 +126,7 @@ function PlanContent({ data }: { data: MyPlan }) {
           <Field label="Teléfono" value={restaurante.telefono || '-'} />
           <Field label="Correo" value={restaurante.email_admin || '-'} />
         </dl>
-        <a
-          href={tenantUrl(restaurante.subdominio)}
-          target="_blank"
-          rel="noreferrer"
-          className="mt-4 inline-flex items-center gap-1.5 text-sm font-semibold break-all text-brand hover:text-brand-dark"
-        >
-          {tenantUrl(restaurante.subdominio)}
-          <ExternalLinkIcon className="size-3.5 shrink-0" />
-        </a>
+        <OpenRestaurantButton />
       </section>
 
       <section className={`min-w-0 lg:col-span-3 ${cardClass}`}>

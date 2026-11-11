@@ -45,6 +45,13 @@ export function useMyPlan() {
   })
 }
 
+/** Enlace de un solo uso al panel de la pollería, con la sesión ya iniciada. */
+export function useRestaurantAccess() {
+  return useMutation({
+    mutationFn: async () => (await api.post<{ url: string }>('/my-plan/restaurant-access/')).data.url,
+  })
+}
+
 export function usePlans() {
   return useQuery({
     queryKey: ['plans'],
